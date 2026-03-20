@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elysée Blog - INF222</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f5f7ff; }
+        .gradient-bg { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+    </style>
+</head>
+<body class="p-4 lg:p-12">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="gradient-bg rounded-[2.5rem] p-8 md:p-12 text-white mb-10 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tight">Mon Blog API</h1>
+                <p class="opacity-80 font-medium">Projet Académique • Université de Yaoundé I</p>
+            </div>
+            <div class="relative w-full md:w-80">
+                <input type="text" id="searchBox" onkeyup="recherche()" placeholder="Rechercher..." 
+                class="w-full py-4 px-6 rounded-2xl text-slate-900 border-none outline-none focus:ring-4 focus:ring-purple-300">
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-4">
+                <div class="bg-white p-8 rounded-[2rem] card-shadow border border-slate-100">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Nouvel Article</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="titre" placeholder="Titre de l'article" class="w-full p-4 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="auteur" placeholder="Votre nom" class="w-full p-4 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="cat" placeholder="Catégorie (ex: Tech)" class="w-full p-4 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        <textarea id="contenu" rows="4" placeholder="Contenu de l'article..." class="w-full p-4 bg-slate-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <button onclick="publier()" class="w-full gradient-bg text-white font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition-all active:scale-95">
+                            Publier l'article
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div id="articlesList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:3000/api/articles";
+
+        // Chargement automatique
+        window.onload = charger;
+
+        async function charger() {
+            const res = await fetch(API);
+            const data = await res.json();
+            afficher(data);
+        }
+
+        async function publier() {
+            const payload = {
+                titre: document.getElementById('titre').value,
+                auteur: document.getElementById('auteur').value,
+                contenu: document.getElementById('contenu').value,
+                categorie: document.getElementById('cat').value
+            };
+
+            if(!payload.titre || !payload.auteur) return alert("Le titre et l'auteur sont obligatoires !");
+
+            const res = await fetch(API, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if(res.ok) {
+                document.querySelectorAll('input, textarea').forEach(i => i.value = "");
+                charger();
+            }
+        }
+
+        async function recherche() {
+            const q = document.getElementById('searchBox').value;
+            const res = await fetch(`${API}/search?query=${q}`);
+            const data = await res.json();
+            afficher(data);
+        }
+
+        async function supprimer(id) {
+            if(confirm("Voulez-vous supprimer cet article ?")) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                charger();
+            }
+        }
+
+        function afficher(articles) {
+            const container = document.getElementById('articlesList');
+            container.innerHTML = articles.map(a => `
+                <div class="bg-white p-6 rounded-[2rem] card-shadow border border-slate-50 relative group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">${a.categorie || 'Blog'}</span>
+                        
+                        <button onclick="supprimer(${a.id})" class="text-slate-300 hover:text-red-500 transition-all p-2 bg-slate-50 rounded-lg" title="Supprimer l'article">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">${a.titre}</h3>
+                    <p class="text-slate-500 text-sm mb-6 line-clamp-3">${a.contenu}</p>
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                        <span class="text-xs font-bold text-slate-800">👤 ${a.auteur}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">${a.date}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
