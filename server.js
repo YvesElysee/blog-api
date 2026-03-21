@@ -117,3 +117,4 @@ app.delete('/api/articles/:id', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Serveur sur le port ${PORT}`);
 });
+ 
