@@ -2,10 +2,30 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 // --- MODIFICATION 1 : Port dynamique pour Render ---
 const PORT = process.env.PORT || 3000; 
+
+// --- CONFIGURATION SWAGGER ---
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Mon Blog API',
+            version: '1.0.0',
+            description: 'Documentation de l\'API du blog d\'Elysée - Projet INF222',
+            contact: { name: 'Elysée' },
+            servers: [{ url: 'https://taf1-inf222.onrender.com' }]
+        },
+    },
+    apis: ['./server.js'], // Il va chercher les annotations dans ce fichier
+};
+
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Configuration de la Base de Données
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -32,9 +52,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname))); 
 
 
-// --- ENDPOINTS API ---
+// --- ENDPOINTS API AVEC DOCUMENTATION ---
 
-// 1. Lire tout / Filtrer
+/**
+ * @openapi
+ * /api/articles:
+ * get:
+ * summary: Récupérer tous les articles
+ * description: Retourne la liste complète des articles triés par ID décroissant.
+ * responses:
+ * 200:
+ * description: Succès
+ */
 app.get('/api/articles', (req, res) => {
     let sql = "SELECT * FROM articles ORDER BY id DESC";
     db.all(sql, [], (err, rows) => {
@@ -43,7 +72,21 @@ app.get('/api/articles', (req, res) => {
     });
 });
 
-// 2. Recherche de l'article
+/**
+ * @openapi
+ * /api/articles/search:
+ * get:
+ * summary: Rechercher un article
+ * parameters:
+ * - in: query
+ * name: query
+ * schema:
+ * type: string
+ * description: Mot-clé de recherche
+ * responses:
+ * 200:
+ * description: Résultats trouvés
+ */
 app.get('/api/articles/search', (req, res) => {
     const query = req.query.query;
     db.all("SELECT * FROM articles WHERE titre LIKE ? OR contenu LIKE ?", [`%${query}%`, `%${query}%`], (err, rows) => {
@@ -52,7 +95,30 @@ app.get('/api/articles/search', (req, res) => {
     });
 });
 
-// Pour Creer
+/**
+ * @openapi
+ * /api/articles:
+ * post:
+ * summary: Créer un article
+ * requestBody:
+ * required: true
+ * content:
+ * application/json:
+ * schema:
+ * type: object
+ * properties:
+ * titre:
+ * type: string
+ * contenu:
+ * type: string
+ * auteur:
+ * type: string
+ * categorie:
+ * type: string
+ * responses:
+ * 201:
+ * description: Article créé
+ */
 app.post('/api/articles', (req, res) => {
     const { titre, contenu, auteur, categorie, tags } = req.body;
     if (!titre || !auteur) return res.status(400).json({ error: "Champs obligatoires manquants" });
@@ -66,7 +132,21 @@ app.post('/api/articles', (req, res) => {
     });
 });
 
-// 4. Supprimer
+/**
+ * @openapi
+ * /api/articles/{id}:
+ * delete:
+ * summary: Supprimer un article
+ * parameters:
+ * - in: path
+ * name: id
+ * required: true
+ * schema:
+ * type: integer
+ * responses:
+ * 200:
+ * description: Succès
+ */
 app.delete('/api/articles/:id', (req, res) => {
     db.run("DELETE FROM articles WHERE id = ?", req.params.id, (err) => {
         if (err) return res.status(500).json({ error: err.message });

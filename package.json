@@ -16,10 +16,12 @@
   "author": "Mballa Yves Elysée",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
     "sqlite3": "^5.1.6",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5"
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "engines": {
     "node": "20.x"
