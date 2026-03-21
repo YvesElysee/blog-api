@@ -1,17 +1,27 @@
 {
-  "name": "blog-api",
+  "name": "blog-api-elysee",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API Blog pour le TAF 1 - INF 222",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm rebuild sqlite3 --build-from-source"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "express",
+    "sqlite3",
+    "render"
+  ],
+  "author": "Mballa Yves Elysée",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }

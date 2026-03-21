@@ -74,3 +74,4 @@ app.delete('/api/articles/:id', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Serveur actif sur http://localhost:${PORT}`);
 });
+// Update for Render deployment
