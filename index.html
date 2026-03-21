@@ -50,16 +50,20 @@
     </div>
 
     <script>
-        const API = "http://localhost:3000/api/articles";
+        const API = "/api/articles";
 
         // Chargement automatique
-        window.onload = charger;
+       window.onload = charger;
 
         async function charger() {
+        try {
             const res = await fetch(API);
             const data = await res.json();
             afficher(data);
+        } catch (err) {
+            console.error("Erreur de chargement:", err);
         }
+    }
 
         async function publier() {
             const payload = {

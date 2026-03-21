@@ -4,7 +4,8 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const PORT = 3000;
+// --- MODIFICATION 1 : Port dynamique pour Render ---
+const PORT = process.env.PORT || 3000; 
 
 // Configuration de la Base de Données
 const db = new sqlite3.Database('./database.sqlite', (err) => {
@@ -26,7 +27,10 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname)); // Permet de servir index.html automatiquement
+
+// --- MODIFICATION 2 : Servir le dossier actuel (pour Render) ---
+app.use(express.static(path.join(__dirname))); 
+
 
 // --- ENDPOINTS API ---
 
@@ -70,8 +74,7 @@ app.delete('/api/articles/:id', (req, res) => {
     });
 });
 
-// Lancement
+// --- MODIFICATION 3 : Lancement adapté ---
 app.listen(PORT, () => {
-    console.log(`🚀 Serveur actif sur http://localhost:${PORT}`);
+    console.log(`🚀 Serveur actif sur le port ${PORT}`);
 });
-// Update for Render deployment
