@@ -6,70 +6,67 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 
 const app = express();
-// --- MODIFICATION 1 : Port dynamique pour Render ---
 const PORT = process.env.PORT || 3000; 
 
-// --- CONFIGURATION SWAGGER ---
+// CONFIGURATION SWAGGER
 const swaggerOptions = {
-    swaggerDefinition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'Mon Blog API',
-            version: '1.0.0',
-            description: 'Documentation de l\'API du blog d\'Elysée - Projet INF222',
-            contact: { name: 'Elysée' },
-            servers: [{ url: 'https://taf1-inf222.onrender.com' }]
-        },
+  swaggerDefinition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Mon Blog API',
+      version: '1.0.0',
+      description: 'Documentation de l\'API du blog d\'Elysée - Projet INF222',
     },
-    apis: ['./server.js'], // Il va chercher les annotations dans ce fichier
+    servers: [
+      {
+        url: 'https://taf1-inf222.onrender.com',
+      },
+    ],
+  },
+  apis: ['./server.js'], 
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Configuration de la Base de Données
+// Base de Données
 const db = new sqlite3.Database('./database.sqlite', (err) => {
-    if (err) console.error("Erreur BD:", err.message);
-    else {
-        console.log('✅ Base de données SQLite connectée.');
-        db.run(`CREATE TABLE IF NOT EXISTS articles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titre TEXT NOT NULL,
-            contenu TEXT,
-            auteur TEXT NOT NULL,
-            date TEXT,
-            categorie TEXT,
-            tags TEXT
-        )`);
-    }
+  if (err) console.error("Erreur BD:", err.message);
+  else {
+    console.log('✅ Base de données SQLite connectée.');
+    db.run(`CREATE TABLE IF NOT EXISTS articles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titre TEXT NOT NULL,
+      contenu TEXT,
+      auteur TEXT NOT NULL,
+      date TEXT,
+      categorie TEXT,
+      tags TEXT
+    )`);
+  }
 });
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
-
-// --- MODIFICATION 2 : Servir le dossier actuel (pour Render) ---
 app.use(express.static(path.join(__dirname))); 
 
-
-// --- ENDPOINTS API AVEC DOCUMENTATION ---
+// --- ENDPOINTS API ---
 
 /**
  * @openapi
  * /api/articles:
  * get:
  * summary: Récupérer tous les articles
- * description: Retourne la liste complète des articles triés par ID décroissant.
  * responses:
  * 200:
  * description: Succès
  */
 app.get('/api/articles', (req, res) => {
-    let sql = "SELECT * FROM articles ORDER BY id DESC";
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+  let sql = "SELECT * FROM articles ORDER BY id DESC";
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
 /**
@@ -82,17 +79,16 @@ app.get('/api/articles', (req, res) => {
  * name: query
  * schema:
  * type: string
- * description: Mot-clé de recherche
  * responses:
  * 200:
- * description: Résultats trouvés
+ * description: Succès
  */
 app.get('/api/articles/search', (req, res) => {
-    const query = req.query.query;
-    db.all("SELECT * FROM articles WHERE titre LIKE ? OR contenu LIKE ?", [`%${query}%`, `%${query}%`], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
+  const query = req.query.query;
+  db.all("SELECT * FROM articles WHERE titre LIKE ? OR contenu LIKE ?", [`%${query}%`, `%${query}%`], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
 /**
@@ -117,19 +113,17 @@ app.get('/api/articles/search', (req, res) => {
  * type: string
  * responses:
  * 201:
- * description: Article créé
+ * description: Créé
  */
 app.post('/api/articles', (req, res) => {
-    const { titre, contenu, auteur, categorie, tags } = req.body;
-    if (!titre || !auteur) return res.status(400).json({ error: "Champs obligatoires manquants" });
-    
-    const date = new Date().toISOString().split('T')[0];
-    const sql = `INSERT INTO articles (titre, contenu, auteur, date, categorie, tags) VALUES (?, ?, ?, ?, ?, ?)`;
-    
-    db.run(sql, [titre, contenu, auteur, date, categorie, tags], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: this.lastID, message: "Article créé" });
-    });
+  const { titre, contenu, auteur, categorie, tags } = req.body;
+  if (!titre || !auteur) return res.status(400).json({ error: "Champs requis" });
+  const date = new Date().toISOString().split('T')[0];
+  const sql = `INSERT INTO articles (titre, contenu, auteur, date, categorie, tags) VALUES (?, ?, ?, ?, ?, ?)`;
+  db.run(sql, [titre, contenu, auteur, date, categorie, tags], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id: this.lastID });
+  });
 });
 
 /**
@@ -145,16 +139,15 @@ app.post('/api/articles', (req, res) => {
  * type: integer
  * responses:
  * 200:
- * description: Succès
+ * description: Supprimé
  */
 app.delete('/api/articles/:id', (req, res) => {
-    db.run("DELETE FROM articles WHERE id = ?", req.params.id, (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Supprimé" });
-    });
+  db.run("DELETE FROM articles WHERE id = ?", req.params.id, (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Supprimé" });
+  });
 });
 
-// --- MODIFICATION 3 : Lancement adapté ---
 app.listen(PORT, () => {
-    console.log(`🚀 Serveur actif sur le port ${PORT}`);
+  console.log(`🚀 Serveur actif sur le port ${PORT}`);
 });
