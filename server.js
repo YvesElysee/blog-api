@@ -15,15 +15,11 @@ const swaggerOptions = {
     info: {
       title: 'Mon Blog API',
       version: '1.0.0',
-      description: 'Documentation de l\'API du blog d\'Elysée - Projet INF222',
+      description: 'API Blog - Projet INF222',
     },
-    servers: [
-      {
-        url: 'https://taf1-inf222.onrender.com',
-      },
-    ],
+    servers: [{ url: 'https://taf1-inf222.onrender.com' }],
   },
-  apis: ['./server.js'], 
+  apis: ['./server.js'],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -33,7 +29,6 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 const db = new sqlite3.Database('./database.sqlite', (err) => {
   if (err) console.error("Erreur BD:", err.message);
   else {
-    console.log('✅ Base de données SQLite connectée.');
     db.run(`CREATE TABLE IF NOT EXISTS articles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       titre TEXT NOT NULL,
@@ -50,20 +45,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname))); 
 
-// --- ENDPOINTS API ---
-
 /**
  * @openapi
  * /api/articles:
  * get:
- * summary: Récupérer tous les articles
+ * summary: Liste des articles
  * responses:
  * 200:
  * description: Succès
  */
 app.get('/api/articles', (req, res) => {
-  let sql = "SELECT * FROM articles ORDER BY id DESC";
-  db.all(sql, [], (err, rows) => {
+  db.all("SELECT * FROM articles ORDER BY id DESC", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
@@ -73,12 +65,7 @@ app.get('/api/articles', (req, res) => {
  * @openapi
  * /api/articles/search:
  * get:
- * summary: Rechercher un article
- * parameters:
- * - in: query
- * name: query
- * schema:
- * type: string
+ * summary: Recherche
  * responses:
  * 200:
  * description: Succès
@@ -95,22 +82,7 @@ app.get('/api/articles/search', (req, res) => {
  * @openapi
  * /api/articles:
  * post:
- * summary: Créer un article
- * requestBody:
- * required: true
- * content:
- * application/json:
- * schema:
- * type: object
- * properties:
- * titre:
- * type: string
- * contenu:
- * type: string
- * auteur:
- * type: string
- * categorie:
- * type: string
+ * summary: Créer article
  * responses:
  * 201:
  * description: Créé
@@ -130,13 +102,7 @@ app.post('/api/articles', (req, res) => {
  * @openapi
  * /api/articles/{id}:
  * delete:
- * summary: Supprimer un article
- * parameters:
- * - in: path
- * name: id
- * required: true
- * schema:
- * type: integer
+ * summary: Supprimer
  * responses:
  * 200:
  * description: Supprimé
@@ -149,5 +115,5 @@ app.delete('/api/articles/:id', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Serveur actif sur le port ${PORT}`);
+  console.log(`🚀 Serveur sur le port ${PORT}`);
 });
