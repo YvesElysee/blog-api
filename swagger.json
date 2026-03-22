@@ -1,0 +1,85 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Elysée Blog API",
+    "version": "1.0.0",
+    "description": "Documentation interactive de l'API pour le TP INF222"
+  },
+  "servers": [
+    {
+      "url": "https://taf1-inf222.onrender.com"
+    }
+  ],
+  "paths": {
+    "/api/articles": {
+      "get": {
+        "summary": "Récupérer tous les articles",
+        "responses": {
+          "200": {
+            "description": "Succès"
+          }
+        }
+      },
+      "post": {
+        "summary": "Créer un article",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "titre": { "type": "string" },
+                  "auteur": { "type": "string" },
+                  "contenu": { "type": "string" },
+                  "categorie": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Créé"
+          }
+        }
+      }
+    },
+    "/api/articles/search": {
+      "get": {
+        "summary": "Rechercher un article",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès"
+          }
+        }
+      }
+    },
+    "/api/articles/{id}": {
+      "delete": {
+        "summary": "Supprimer un article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Supprimé"
+          }
+        }
+      }
+    }
+  }
+}
